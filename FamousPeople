@@ -1,0 +1,79 @@
+/* author: Nur Batrisyia Irdina Mohd Shahid OR Irdina Shahid*/
+
+/* Create table about the people and what they do here */
+
+create table famousppl (id integer primary key, name text, age integer, nationality text, ethnicity text);
+
+create table profession (id integer primary key, ppl_id integer, job1 text, job2 text);
+
+insert into famousppl (name, age, nationality, ethnicity) values ("Simone Ashley", 28, "British", "Indian");
+insert into famousppl(name,age, nationality, ethnicity) values ("Jennie Kim", 27, "South Korea", "South Korean");
+insert into famousppl(name,age, nationality, ethnicity) values ("Jonathan Bailey", 35, "British","English");
+insert into famousppl(name,age, nationality, ethnicity) values ("Hugh Laurie", 63, "British", "Scottish");
+insert into famousppl(name, age, nationality, ethnicity) values ("Abel Tesfaye", 33, "Canadian", "Ethiopian");
+insert into famousppl (name, age, nationality, ethnicity) values ("Rose Park", 26, "New Zealand", "South Korean");
+insert into famousppl (name, age, nationality, ethnicity) values ("Jennifer Hudson",41,"American","African-American");
+insert into famousppl (name, age, nationality, ethnicity) values ("Bryce Dallas Howard",42,"American","German");
+insert into famousppl (name, age, nationality, ethnicity) values ("Cate Blanchett", 54, "Australian","English");
+insert into famousppl (name, age, nationality, ethnicity) values ("Michelle Yeoh",60,"Malaysia","Chinese");
+insert into famousppl (name, age, nationality, ethnicity) values ("Jamie Lee Curtis",64,"American","English");
+insert into famousppl(name, age, nationality, ethnicity) values ("Lin-Manuel Miranda",43, "American","Puerto Rican");
+insert into famousppl(name, age, nationality, ethnicity) values ("Eddie Redmayne",41,"British","English");
+
+insert into profession(ppl_id, job1) values (1, "actor");
+insert into profession(ppl_id, job1, job2) values (2, "singer","actor");
+insert into profession(ppl_id, job1) values (3, "actor");
+insert into profession(ppl_id, job1, job2) values (4, 'actor','author');
+insert into profession(ppl_id, job1, job2) values (5, 'singer','actor');
+insert into profession(ppl_id, job1) values (6,'singer');
+insert into profession(ppl_id, job1, job2) values (7, 'singer', 'actor');
+insert into profession(ppl_id, job1, job2) values (8, 'actor', 'director');
+insert into profession(ppl_id, job1) values (9, 'actor');
+insert into profession(ppl_id, job1) values (10, 'actor');
+insert into profession(ppl_id, job1, job2) values (11, 'actor', 'author');
+insert into profession(ppl_id, job1, job2) values (12, 'actor','singer');
+insert into profession(ppl_id, job1, job2)
+values (13, NULL, "actor");
+
+
+select * from famousppl;
+select * from profession;
+
+-- from famousppl table, who is an actor and singer?
+
+select famousppl.name from famousppl join profession on famousppl.id = profession.ppl_id where (profession.job1 = "actor" and profession.job2 = "singer") or (profession.job1 = "singer" and profession.job2 = "actor");
+
+-- which actors are POC (people of colour)?
+select famousppl.name, famousppl.ethnicity, famousppl.nationality from famousppl join profession on famousppl.id = profession.ppl_id where (profession.job1 = "actor" or profession.job2 = "actor") and (not famousppl.ethnicity = "English" and not famousppl.ethnicity = "Scottish" and not famousppl.ethnicity = "German");
+
+-- which actor is below 30 years old?
+select famousppl.name, famousppl.age from famousppl join profession on famousppl.id = profession.ppl_id where (profession.job1 = "actor" or profession.job2 = "actor") and famousppl.age <= 30;
+
+-- how many people in total are in the profession of singing, acting, writing & directing respectively?
+select sum(case
+    when (job1 = "singer" or job2 = "singer") then 1
+    else 0
+end) as "Singer Count",
+sum (case
+    when (job1 = 'actor' or job2 = 'actor') then 1
+    else 0
+end) as "Actor Count",
+sum (case
+    when (job1 = 'author' or job2 = 'author') then 1
+    else 0
+end) as "Author Count",
+sum (case
+    when (job1 = 'director' or job2 = 'director') then 1
+    else 0
+end) as "Director Count"
+from profession;
+
+-- which non-american famous people has a single profession?
+select famousppl.name, famousppl.nationality, case 
+    when profession.job2 IS NULL then profession.job1
+    when profession.job1 IS NULL then profession.job2
+    else null
+end as "Main Profession" 
+from famousppl join profession 
+on famousppl.id = profession.ppl_id 
+where not famousppl.nationality = "American" and (profession.job2 IS NULL or (profession.job1 IS NULL and profession.job2 IS NOT NULL));
