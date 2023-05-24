@@ -1,0 +1,65 @@
+/* author: Irdina Shahid 
+Source of data: https://www.kaggle.com/datasets/equinxx/spotify-top-50-songs-in-2021?select=spotify_top50_2021.csv
+I have created a table that corresponds to the dataset, then imported the dataset into the table Spotifydata. 
+*/
+
+CREATE TABLE BIT_DB.Spotifydata (
+id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+track_name varchar NOT NULL,
+track_id varchar NOT NULL,
+popularity integer NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+song_key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+song_mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness decimal(8,7) NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+duration_ms integer NOT NULL,
+time_signature integer NOT NULL );
+
+/* to display all data in the table */
+select * from Spotifydata;
+
+/* what data can be extracted from the datasets? what does this data selected by Spotify users can we conclude from this? 
+What does it tell us? */
+
+-- list down the artist and their number of tracks with popularity above 90 and
+-- which artist has the most track with popularity of above 90?
+SELECT distinct artist_name, count(track_name)
+FROM Spotifydata
+WHERE popularity > 90
+GROUP BY artist_name
+ORDER BY count(track_name) DESC;
+ 
+-- does users nowadays prefer to dance more? list down the top 5 songs that users would like to dance to based on its average score.
+SELECT artist_name, track_name, danceability, popularity, energy
+FROM Spotifydata
+GROUP BY artist_name
+HAVING danceability >= (select avg(danceability) from Spotifydata) and energy >= (select avg(energy) from Spotifydata)
+ORDER BY danceability desc
+limit 5;
+
+-- does users these days prefer more sad songs or happy songs? how many songs is above the average scale of valence?
+SELECT artist_name, track_name, valence, energy
+FROM Spotifydata
+GROUP BY artist_name
+HAVING valence >= (select avg(valence) from Spotifydata)
+ORDER BY valence desc;
+
+/*Calculate the average popularity for the artists in the Spotify data table. 
+Then, for every artist with an average popularity of 90 or above, show their name, their average popularity, and label them as a “Top Star”.*/
+WITH avg_pop_temp AS (
+    SELECT artist_name, avg(popularity) AS average_popularity
+    FROM Spotifydata 
+    GROUP BY artist_name
+)
+
+SELECT artist_name, average_popularity , 'Top Star' AS tag
+FROM avg_pop_temp
+WHERE average_popularity >= 90;
