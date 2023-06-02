@@ -1,0 +1,165 @@
+/* Queries are fully written by NUR BATRISYIA IRDINA MOHD SHAHID (IRDINA SHAHID) */
+-- this is a data set from chinook.zip that contain records of a digital media store
+/*Show Customers (their full names, customer ID, and country) who are not in the US. */
+
+select * from customers;
+
+select CustomerId, FirstName, LastName, Country 
+from customers
+where Country <> 'USA';
+
+-- Show only the Customers from Brazil.
+select * from customers
+where Country = 'Brazil';
+
+-- Find the Invoices of customers who are from Brazil. 
+-- The resulting table should show the customer's full name, Invoice ID, Date of the invoice, and billing country.
+select * from invoices;
+
+select c.FirstName, c.LastName, inv.InvoiceId, inv.InvoiceDate, inv.BillingCountry
+from customers c
+join invoices inv
+on c.CustomerID = inv.CustomerId
+where BillingCountry = 'Brazil';
+
+-- Show the Employees who are Sales Agents.
+select * from employees;
+
+select * from employees
+where Title = 'Sales Support Agent';
+
+-- Find a unique/distinct list of billing countries from the Invoice table.
+select * from invoices;
+
+select distinct BillingCountry from invoices;
+
+-- Provide a query that shows the invoices associated with each sales agent.
+/*The resulting table should include the Sales Agent's full name.*/
+select * from customers;
+-- found the list of customers and its sales agent who attended them
+-- CustomerId of customers
+
+select * from invoices;
+-- CustomerId of customers (FK)
+
+select * from employees;
+-- table that has sales agent's full name
+
+with fstJoin as (
+select inv.InvoiceId, c.CustomerId, c.SupportRepId
+from customers c join invoices inv
+on c.CustomerId = inv.CustomerId
+
+)
+select fst.InvoiceId, fst.SupportRepId, e.FirstName, e.LastName
+from employees e join fstJoin fst
+on e.EmployeeId = fst.SupportRepId;
+
+-- Show the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers.
+select * from invoices;
+select * from customers;
+
+with fstJoin as (
+select inv.InvoiceId, inv.Total, c.FirstName, c.LastName, c.Country, c.SupportRepId
+from customers c join invoices inv
+on c.CustomerId = inv.CustomerId
+
+)
+select fst.InvoiceId, fst.Total, fst.FirstName as "Customer First Name", 
+fst.LastName as "Customer Last Name", fst.Country as "Customer Country", 
+fst.SupportRepId as "Sales Agent ID", e.FirstName as "Sales Agent First Name", 
+e.LastName as "Sales Agent Last Name"
+from employees e join fstJoin fst
+on e.EmployeeId = fst.SupportRepId;
+
+-- How many Invoices were there in 2009?
+select * from invoices;
+
+select count(InvoiceID) from invoices
+where InvoiceDate >= '2009-01-01' and InvoiceDate < '2010-01-01';
+
+-- What are the total sales for 2009?
+select * from invoices;
+
+select sum(Total) from invoices
+where InvoiceDate >= '2009-01-01' and InvoiceDate < '2010-01-01';
+
+-- Write a query that includes the purchased track name with each invoice line ID.
+select * from invoice_items;
+-- InvoiceLineId, TrackId
+
+select * from tracks;
+-- TrackId, Name
+
+select invt.InvoiceLineId, t.Name
+from invoice_items invt join tracks t
+on invt.TrackId = t.TrackId;
+
+-- Write a query that includes the purchased track name AND artist name with each invoice line ID. 
+select * from invoice_items;
+select * from tracks;
+select * from artists;
+
+with fstJoin as (
+select invt.InvoiceLineId, t.Name, t.AlbumId
+from invoice_items invt join tracks t
+on invt.TrackId = t.TrackId
+
+)
+select fst.InvoiceLineId, fst.Name as "Track Name", art.Name as "Artist"
+from albums alb 
+join fstJoin fst
+    on alb.AlbumId = fst.AlbumId
+join artists art
+    on alb.ArtistId = art.ArtistId
+order by fst.InvoiceLineId;
+
+-- Provide a query that shows all the Tracks, and include the Album name, Media type, and Genre.
+select t.Name as "Track Name", alb.Title as "Album Title", g.Name as "Genre", mt.Name as "Media Type"
+from tracks t 
+join media_types mt
+    on t.MediaTypeId = mt.MediaTypeId
+join genres g
+    on t.GenreId = g.GenreId
+join albums alb
+    on t.AlbumId = alb.AlbumId;
+    
+-- Show the total sales made by each sales agent.
+select * from invoices;
+select * from invoice_items;
+select * from customers;
+select * from employees;
+select sum(Total) from invoices; -- total should be $2328.60
+
+with fstJoin as (
+select round(sum(inv.Total),2) as total_sales, c.SupportRepId
+from invoices inv join customers c
+on inv.CustomerId = c.CustomerId
+group by c.SupportRepId
+)
+select fst.SupportRepId as "Sales Agent ID", 
+(e.FirstName || ' ' || e.LastName) as "Full Name of Sales Agent",
+fst.total_sales as "Total Sales ($)"
+from fstJoin fst
+join employees e
+on fst.SupportRepId = e.EmployeeId;
+
+-- Which sales agent made the most dollars in sales in 2009?
+-- total sale in 2009 = $449.46 through query below
+select sum(Total) from invoices where InvoiceDate >= '2009-01-01' and InvoiceDate < '2010-01-01';
+
+with fstJoin as (
+select round(sum(inv.Total),2) as total_sales, c.SupportRepId
+from invoices inv join customers c
+on inv.CustomerId = c.CustomerId
+where inv.InvoiceDate >= '2009-01-01' and inv.InvoiceDate < '2010-01-01'
+group by c.SupportRepId
+)
+select fst.SupportRepId as "Sales Agent ID", 
+(e.FirstName || ' ' || e.LastName) as "Full Name of Sales Agent",
+fst.total_sales as "Most Sales in 2009 ($)"
+from fstJoin fst
+join employees e
+on fst.SupportRepId = e.EmployeeId
+order by fst.total_sales desc
+limit 1;
